@@ -173,7 +173,8 @@ std::vector<Player*> PBC_FindNearbyBots(Player* source, float range)
 // PBC_FindChannelBots
 // ---------------------------------------------------------------------------
 
-std::vector<Player*> PBC_FindChannelBots(Player* sender, size_t maxCandidates)
+std::vector<Player*> PBC_FindChannelBots(Player* sender, size_t maxCandidates,
+    const std::unordered_set<uint64_t>& excludedGuids)
 {
     std::vector<Player*> bots;
     if (!PBC_PTR_VALID(sender)) return bots;
@@ -193,6 +194,7 @@ std::vector<Player*> PBC_FindChannelBots(Player* sender, size_t maxCandidates)
         if (!PBC_PTR_VALID(player) || player == sender) continue;
         if (!player->IsInWorld()) continue;
         if (player->GetZoneId() != zoneId) continue;
+        if (excludedGuids.count(player->GetGUID().GetCounter())) continue;
         if (!crossFactionChannels && player->GetTeamId() != senderTeam) continue;
         WorldSession* sess = player->GetSession();
         if (!PBC_PTR_VALID(sess) || !sess->IsBot()) continue;

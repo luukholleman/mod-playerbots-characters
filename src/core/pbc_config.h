@@ -64,6 +64,18 @@ extern uint32_t g_PBC_ReplyChanceWhisper;
 extern uint32_t g_PBC_ReplyChanceMention;
 extern uint32_t g_PBC_ReplyChanceMessage;
 extern uint32_t g_PBC_RollPenaltyOnAnswer;
+
+// Bot-to-bot cascades: when a bot's own reply produces further replies
+// (secondary events), whether those secondary events are allowed to fire
+// at all, and how fast their chance decays hop over hop.  Decay is
+// multiplicative (percent of the previous hop's chance) rather than a flat
+// subtraction, so it scales correctly whether the base chance is party
+// chat's 100% or channel chat's ~5% — and always reaches exactly 0 after a
+// bounded number of hops (integer truncation), guaranteeing the cascade
+// terminates instead of ping-ponging between bots indefinitely.
+extern bool     g_PBC_ReplyToBotMessages;
+extern uint32_t g_PBC_SecondaryEventDecayPercent;
+
 extern uint32_t g_PBC_ReplyChanceItem;
 extern uint32_t g_PBC_ReplyChanceDuel;
 extern uint32_t g_PBC_ReplyChanceLevelUp;
@@ -278,6 +290,12 @@ struct PBC_EventItem
     std::vector<uint64_t> replyOnlyCharGuids;
     bool canCreateEvents = false;   // If true, triggers secondary events
 
+    // How many secondary-event hops deep this event already is (0 = primary
+    // event, triggered directly by a real player's message). Propagated
+    // and incremented across the PBC_PendingEventRequest chain so the
+    // secondary event's roll chance can decay hop over hop.
+    uint32_t hopDepth = 0;
+
     // Event-local history accumulator.  Populated during ProcessNormal with
     // structured entries in chronological order (source first, then each
     // reply).  Before each responder's LLM call the current contents are
@@ -345,10 +363,12 @@ struct PBC_PendingEventRequest
     std::string eventLine;
     PBC_EventSource source;         // Raw event data from the original event
     uint32_t chatType = 0;
+    std::string channelName;        // Non-empty for CHAT_MSG_CHANNEL secondary events
     uint64_t anchorCharGuid = 0;
     std::unordered_set<uint64_t> excludedCharGuids;
     std::vector<uint64_t> originCharGuids;
     std::vector<uint64_t> playerCharGuids;
+    uint32_t hopDepth = 0;           // See PBC_EventItem::hopDepth
 
     // Full accumulated history from the primary event (source + every reply
     // in order).  Written to new targets' DB history before the secondary

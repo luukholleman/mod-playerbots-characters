@@ -156,6 +156,26 @@ PBC.ReplyChanceMessage = 100
 #     Default:     45
 PBC.RollPenaltyOnAnswer = 45
 
+# PBC.ReplyToBotMessages
+#     Description: Whether a character's own reply can go on to trigger further characters
+#                  to react to IT (a "secondary event") — i.e. bots responding to other bots,
+#                  not just to real players. Applies to both party/say chat and channel chat.
+#                  Termination is guaranteed regardless of this setting's value: each
+#                  additional hop's roll chance is multiplied by
+#                  SecondaryEventDecayPercent/100, so it always truncates to exactly 0 after
+#                  a bounded number of hops instead of ping-ponging between bots forever.
+#     Default:     1
+PBC.ReplyToBotMessages = 1
+
+# PBC.SecondaryEventDecayPercent
+#     Description: Percent of the previous hop's roll chance kept at each additional
+#                  bot-to-bot secondary-event hop (see ReplyToBotMessages). E.g. with the
+#                  default 50, a party chat cascade starting at 100% goes 100 -> 50 -> 25 ->
+#                  12 -> 6 -> 3 -> 1 -> 0 (7 hops); a channel cascade starting at 5% goes
+#                  5 -> 2 -> 1 -> 0 (3 hops). Lower values die out faster.
+#     Default:     50
+PBC.SecondaryEventDecayPercent = 50
+
 # --------------------------------------------
 # CHANNEL CHAT (e.g. General)
 # --------------------------------------------

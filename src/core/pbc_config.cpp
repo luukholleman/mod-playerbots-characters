@@ -55,6 +55,10 @@ uint32_t g_PBC_ReplyChanceWhisper   = 100;
 uint32_t g_PBC_ReplyChanceMention   = 100;
 uint32_t g_PBC_ReplyChanceMessage   = 100;
 uint32_t g_PBC_RollPenaltyOnAnswer  = 45;
+
+bool     g_PBC_ReplyToBotMessages         = true;
+uint32_t g_PBC_SecondaryEventDecayPercent = 50;
+
 uint32_t g_PBC_ReplyChanceItem     = 5;
 uint32_t g_PBC_ReplyChanceDuel     = 5;
 uint32_t g_PBC_ReplyChanceLevelUp  = 5;
@@ -468,6 +472,10 @@ void PBC_LoadConfig(bool /*isStartup*/)
     g_PBC_ReplyChanceMention   = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceMention", 100);
     g_PBC_ReplyChanceMessage   = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceMessage", 100);
     g_PBC_RollPenaltyOnAnswer  = sConfigMgr->GetOption<uint32_t>("PBC.RollPenaltyOnAnswer", 45);
+
+    g_PBC_ReplyToBotMessages         = sConfigMgr->GetOption<bool>("PBC.ReplyToBotMessages", true);
+    g_PBC_SecondaryEventDecayPercent = sConfigMgr->GetOption<uint32_t>("PBC.SecondaryEventDecayPercent", 50);
+
     g_PBC_ReplyChanceItem     = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceItem", 5);
     g_PBC_ReplyChanceDuel     = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceDuel", 5);
     g_PBC_ReplyChanceLevelUp  = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceLevelUp", 5);
@@ -579,6 +587,10 @@ void PBC_LoadConfig(bool /*isStartup*/)
         g_PBC_ReactToChannelChat, channelPrefixesStr, g_PBC_ChannelRequiresCharacterCard,
         g_PBC_ReplyChanceChannelMessage, g_PBC_ReplyChanceChannelMention,
         g_PBC_ChannelMessageMaxCandidates);
+
+    PBC_Log(PBC_LogLevel::PBC_DEFAULT,
+        "Config: ReplyToBotMessages={} SecondaryEventDecayPercent={}%",
+        g_PBC_ReplyToBotMessages, g_PBC_SecondaryEventDecayPercent);
 
     PBC_Log(PBC_LogLevel::PBC_DEFAULT,
         "HTTP Server: Port={} Bind='{}' Timeout={}s BaseUrl='{}' PrivateKey={} FrontendPath='{}'",

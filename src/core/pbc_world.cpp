@@ -176,8 +176,14 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                 continue;
             }
 
-            // Collect group bots excluding those in the excluded set.
-            auto targets = PBC_FindGroupBotsExcluding(anchor, req.excludedCharGuids);
+            // Channel secondary events look up candidates by zone (like the
+            // primary channel dispatch); everything else (party/raid/say) is
+            // group-based as before. Both exclude the previous hop's
+            // participants so the same bot doesn't immediately re-trigger.
+            bool isChannelEvent = (req.chatType == CHAT_MSG_CHANNEL);
+            auto targets = isChannelEvent
+                ? PBC_FindChannelBots(anchor, g_PBC_ChannelMessageMaxCandidates, req.excludedCharGuids)
+                : PBC_FindGroupBotsExcluding(anchor, req.excludedCharGuids);
 
             if (!targets.empty())
             {
@@ -202,7 +208,14 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                 newEv.eventLine        = req.eventLine;
                 newEv.source           = req.source;
                 newEv.chatType         = req.chatType;
-                newEv.canCreateEvents  = false; // message events never spawn further events
+                newEv.channelName      = req.channelName;
+                newEv.hopDepth         = req.hopDepth;
+                // Allow further cascading (another bot's reply pulling in
+                // more bots) only when the feature is enabled — the roll
+                // chance below decays every hop and reaches exactly 0 after
+                // a bounded number of hops, so enabling this can't loop
+                // forever even in a busy channel.
+                newEv.canCreateEvents  = g_PBC_ReplyToBotMessages;
                 // Original responders already have histLine; they only need
                 // to receive any new replies produced by this secondary event.
                 newEv.replyOnlyCharGuids = req.originCharGuids;
@@ -214,11 +227,16 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                 // same character — same approach as the primary chat handler.
                 std::shuffle(targets.begin(), targets.end(), PBC_GetRNG());
 
-                // Apply the same penalty logic as the primary chat handler
-                // (HandleChatMessage), but start with the penalty already applied
-                // once — the original responder already "used" a successful roll.
-                uint32 startingChance = g_PBC_ReplyChanceMessage > g_PBC_RollPenaltyOnAnswer
-                    ? g_PBC_ReplyChanceMessage - g_PBC_RollPenaltyOnAnswer : 0;
+                // Chance decays multiplicatively per hop (req.hopDepth is
+                // 1 on the first secondary hop, 2 on the next, ...) so it
+                // scales correctly for both party chat's 100% base and
+                // channel chat's ~5% base, and always truncates to exactly 0
+                // after a bounded number of hops — guaranteeing the cascade
+                // terminates instead of ping-ponging between bots forever.
+                uint32 baseChance = isChannelEvent ? g_PBC_ReplyChanceChannelMessage : g_PBC_ReplyChanceMessage;
+                uint32 startingChance = baseChance;
+                for (uint32_t hop = 0; hop < req.hopDepth; ++hop)
+                    startingChance = startingChance * g_PBC_SecondaryEventDecayPercent / 100;
 
                 PBC_RollBotsWithPenalty(newEv, targets, startingChance, "SecondaryEvent");
 

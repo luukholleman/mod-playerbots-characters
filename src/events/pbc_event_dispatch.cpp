@@ -531,7 +531,7 @@ void PBC_DispatchPartyMessageEvent(Player* sender, const std::string& msg,
     ev.source.senderName  = senderName;
     ev.source.message     = msg;
     ev.chatType           = chatType ? chatType : CHAT_MSG_PARTY;
-    ev.canCreateEvents    = canCreateEvents;
+    ev.canCreateEvents    = canCreateEvents && g_PBC_ReplyToBotMessages;
 
     // Record the real player who triggered this event (for regen logging).
     {
@@ -583,11 +583,14 @@ void PBC_DispatchChannelMessageEvent(Player* sender, Channel* channel, const std
     ev.source.message     = msg;
     ev.chatType           = CHAT_MSG_CHANNEL;
     ev.channelName        = channelName;
-    // Secondary events pull in the responder's *groupmates*, who were never
-    // part of the channel audience.  They also travel through
-    // PBC_PendingEventRequest, which carries no channelName — so their replies
-    // would fall back to a local say.  Channel events never spawn secondaries.
-    ev.canCreateEvents    = false;
+    // Secondary events pull in other channel bots (via PBC_FindChannelBots,
+    // not group membership) and carry channelName through
+    // PBC_PendingEventRequest so replies land back in the same channel. The
+    // roll chance decays multiplicatively per hop (g_PBC_SecondaryEventDecayPercent,
+    // applied in the world-tick consumer) so a channel cascade always dies
+    // out after a bounded number of hops instead of ping-ponging between
+    // bots indefinitely.
+    ev.canCreateEvents    = g_PBC_ReplyToBotMessages;
 
     // Record the real player who triggered this event (for regen logging).
     {

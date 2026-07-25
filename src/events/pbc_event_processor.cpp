@@ -722,12 +722,14 @@ void ProcessNormal(PBC_EventItem& ev,
         req.eventLine           = lastEventLine;
         req.source              = ev.source;
         req.chatType            = ev.chatType;
+        req.channelName         = ev.channelName;
         req.anchorCharGuid     = lastResponderGuid;
         req.eventHistory        = ev.eventHistory;
         for (const auto& rs : ev.respondingChars)
             req.originCharGuids.push_back(rs.charGuidRaw);
         req.playerCharGuids   = ev.playerCharGuids;
         req.excludedCharGuids = std::move(excluded);
+        req.hopDepth           = ev.hopDepth + 1;
 
         {
             std::lock_guard<std::mutex> lock(g_PBC_PendingEventRequestsMutex);

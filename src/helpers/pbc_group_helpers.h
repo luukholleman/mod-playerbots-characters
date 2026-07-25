@@ -55,7 +55,10 @@ std::vector<Player*> PBC_FindNearbyBots(Player* source, float range = 60.0f);
 // WotLK's zone-based General channel already uses), excludes 'sender', and
 // caps the result at maxCandidates (after shuffling) to bound worst-case
 // fan-out on populated channels.
-std::vector<Player*> PBC_FindChannelBots(Player* sender, size_t maxCandidates);
+// excludedGuids: additionally skip these GUIDs (used by bot-to-bot secondary
+// events to avoid immediately re-rolling the bot(s) that just spoke).
+std::vector<Player*> PBC_FindChannelBots(Player* sender, size_t maxCandidates,
+    const std::unordered_set<uint64_t>& excludedGuids = {});
 
 // Returns true if bot is in a group that contains at least one real (non-bot) player.
 bool PBC_BotIsGroupedWithRealPlayer(Player* bot);
