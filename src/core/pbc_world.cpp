@@ -176,8 +176,6 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
 
                 if (player->IsInCombat()) continue;
 
-                if (PBC_GetCharacterCard(player).empty()) continue;
-
                 if (PBC_RollChance(g_PBC_AmbientChatChance))
                 {
                     PBC_DispatchTriggerEvent(player);

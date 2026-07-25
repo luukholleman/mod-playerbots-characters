@@ -304,7 +304,7 @@ PBC.LocationChangeDebounceCycles = 5
 #                  Every interval, each eligible bot has AmbientChatChance%
 #                  of spontaneously speaking via a trigger event — without
 #                  any incoming message or game event prompting them.
-#                  Bots must be out of combat and have a character card.
+#                  Bots must be out of combat.
 #                  Set to 0 to disable ambient chat entirely.
 #     Default:     120
 PBC.AmbientChatIntervalSeconds = 120
