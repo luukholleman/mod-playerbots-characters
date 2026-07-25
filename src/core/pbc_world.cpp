@@ -506,6 +506,14 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                                 channel->Say(bot->GetGUID(), action.text, LANG_UNIVERSAL);
                                 g_PBC_SendingOwnChannelReply = false;
                             }
+                            else
+                            {
+                                bot->Say(action.text, LANG_UNIVERSAL);
+                            }
+                        }
+                        else
+                        {
+                            bot->Say(action.text, LANG_UNIVERSAL);
                         }
                     }
                     else
