@@ -156,6 +156,36 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
         }
     }
 
+    // 0d. Ambient chat — bots spontaneously speak without an incoming event
+    if (g_PBC_AmbientChatIntervalSeconds > 0 && g_PBC_AmbientChatChance > 0)
+    {
+        static time_t s_lastAmbientChat = 0;
+        time_t now = GameTime::GetGameTime().count();
+        if (s_lastAmbientChat == 0 || (now - s_lastAmbientChat) >= static_cast<time_t>(g_PBC_AmbientChatIntervalSeconds))
+        {
+            s_lastAmbientChat = now;
+
+            WorldSessionMgr::SessionMap const& sessions = sWorldSessionMgr->GetAllSessions();
+            for (auto const& [id, session] : sessions)
+            {
+                Player* player = session->GetPlayer();
+                if (!player || !player->IsInWorld()) continue;
+
+                WorldSession* sess = player->GetSession();
+                if (!PBC_PTR_VALID(sess) || !sess->IsBot()) continue;
+
+                if (player->IsInCombat()) continue;
+
+                if (PBC_GetCharacterCard(player).empty()) continue;
+
+                if (PBC_RollChance(g_PBC_AmbientChatChance))
+                {
+                    PBC_DispatchTriggerEvent(player);
+                }
+            }
+        }
+    }
+
     // 1. Drain secondary event requests from event thread
     {
         std::queue<PBC_PendingEventRequest> localReqs;

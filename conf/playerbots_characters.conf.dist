@@ -296,6 +296,28 @@ PBC.LocationChangeDebounceCycles = 5
 
 
 # --------------------------------------------
+# AMBIENT CHAT
+# --------------------------------------------
+
+# PBC.AmbientChatIntervalSeconds
+#     Description: How often (in seconds) the ambient chat timer fires.
+#                  Every interval, each eligible bot has AmbientChatChance%
+#                  of spontaneously speaking via a trigger event — without
+#                  any incoming message or game event prompting them.
+#                  Bots must be out of combat and have a character card.
+#                  Set to 0 to disable ambient chat entirely.
+#     Default:     120
+PBC.AmbientChatIntervalSeconds = 120
+
+# PBC.AmbientChatChance
+#     Description: The percent chance (0-100) that each eligible bot will
+#                  spontaneously say something when the ambient chat timer
+#                  fires.  Applies independently to every bot each interval.
+#     Default:     10
+PBC.AmbientChatChance = 10
+
+
+# --------------------------------------------
 # HTTP SERVER
 # --------------------------------------------
 
