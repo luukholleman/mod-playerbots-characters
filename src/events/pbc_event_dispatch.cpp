@@ -206,6 +206,27 @@ void PBC_RollBotsWithPenalty(PBC_EventItem& ev,
 }
 
 // ---------------------------------------------------------------------------
+// PBC_RollBotsIndependent
+// ---------------------------------------------------------------------------
+void PBC_RollBotsIndependent(PBC_EventItem& ev,
+                              const std::vector<Player*>& bots,
+                              uint32_t chance,
+                              const char* debugLabel)
+{
+    for (Player* bot : bots)
+    {
+        uint32_t effectiveChance = PBC_GetEffectiveChance(bot->GetGUID().GetCounter(), chance);
+        bool rolled = PBC_RollChance(effectiveChance);
+        PBC_Log(PBC_LogLevel::PBC_DEBUG, "Roll {} character={} chance={}% (independent) -> {}",
+                 debugLabel, bot->GetName(), effectiveChance, rolled ? "RESPOND" : "silent");
+        if (rolled)
+            ev.respondingChars.push_back(PBC_SnapshotCharacter(bot));
+        else
+            ev.silentCharGuids.push_back(bot->GetGUID().GetCounter());
+    }
+}
+
+// ---------------------------------------------------------------------------
 // PBC_RollBotsForMessage
 // ---------------------------------------------------------------------------
 void PBC_RollBotsForMessage(PBC_EventItem& ev,
@@ -251,23 +272,41 @@ void PBC_RollBotsForMessage(PBC_EventItem& ev,
                 ev.silentCharGuids.push_back(bot->GetGUID().GetCounter());
         }
 
-        uint32_t mentionPenalty = g_PBC_RollPenaltyOnAnswer * mentionedGuids.size();
-        uint32_t baseChance = mentionChance > mentionPenalty
-            ? mentionChance - mentionPenalty : 0;
-
         std::vector<Player*> nonMentionedBots;
         for (Player* bot : bots)
             if (!mentionedGuids.count(bot->GetGUID().GetCounter()))
                 nonMentionedBots.push_back(bot);
 
         std::shuffle(nonMentionedBots.begin(), nonMentionedBots.end(), PBC_GetRNG());
-        PBC_RollBotsWithPenalty(ev, nonMentionedBots, baseChance, "mention-bystander");
+
+        if (useChannelChance)
+        {
+            // Channel chat's base chances are small relative to
+            // RollPenaltyOnAnswer (calibrated for party chat's 100% base),
+            // so a decaying roll here would cap bystander responders at 1
+            // regardless of candidate pool size. Let every bystander roll
+            // independently instead, at the ordinary message chance rather
+            // than the (higher) mention chance — being a bystander to
+            // someone else's mention isn't the same as being addressed.
+            PBC_RollBotsIndependent(ev, nonMentionedBots, messageChance, "mention-bystander");
+        }
+        else
+        {
+            uint32_t mentionPenalty = g_PBC_RollPenaltyOnAnswer * mentionedGuids.size();
+            uint32_t baseChance = mentionChance > mentionPenalty
+                ? mentionChance - mentionPenalty : 0;
+            PBC_RollBotsWithPenalty(ev, nonMentionedBots, baseChance, "mention-bystander");
+        }
     }
     else
     {
         std::vector<Player*> shuffledBots = bots;
         std::shuffle(shuffledBots.begin(), shuffledBots.end(), PBC_GetRNG());
-        PBC_RollBotsWithPenalty(ev, shuffledBots, messageChance, "message");
+
+        if (useChannelChance)
+            PBC_RollBotsIndependent(ev, shuffledBots, messageChance, "message");
+        else
+            PBC_RollBotsWithPenalty(ev, shuffledBots, messageChance, "message");
     }
 }
 

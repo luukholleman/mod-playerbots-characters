@@ -53,6 +53,20 @@ void PBC_RollBotsWithPenalty(PBC_EventItem& ev,
                               const char* debugLabel = "Roll");
 
 // ---------------------------------------------------------------------------
+// Roll every bot independently at the same chance (no decay across the
+// roll). Use this instead of PBC_RollBotsWithPenalty when baseChance is
+// already small relative to RollPenaltyOnAnswer (e.g. channel chat's ~5%
+// vs. the penalty's 45%) — with the decaying roll, the first success would
+// drop everyone else's chance to 0, capping responders at 1 regardless of
+// how many candidates are eligible. Does NOT shuffle.
+// Fills ev.respondingChars and ev.silentCharGuids.
+// ---------------------------------------------------------------------------
+void PBC_RollBotsIndependent(PBC_EventItem& ev,
+                              const std::vector<Player*>& bots,
+                              uint32_t chance,
+                              const char* debugLabel = "Roll");
+
+// ---------------------------------------------------------------------------
 // Convenience wrapper: finds group bots for 'player', shuffles them, and
 // rolls with penalty into the provided event item.  Returns true if any bots
 // were found (regardless of roll outcomes), false if the player has no group
