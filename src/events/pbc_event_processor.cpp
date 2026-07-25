@@ -513,14 +513,15 @@ void ProcessNormal(PBC_EventItem& ev,
         // Build user prompt from snapshot
         std::string userPrompt = PBC_BuildUserPromptFromSnapshot(snap, currentEvent);
 
-        PBC_Log(PBC_LogLevel::PBC_DEBUG, "ProcessEvent: calling LLM for character={} event=\"{}\"",
-                 snap.charName, currentEvent);
+        PBC_Log(PBC_LogLevel::PBC_DEFAULT, "ProcessEvent: calling LLM for character={} type={} event=\"{}\"",
+                 snap.charName, static_cast<int>(ev.type), currentEvent);
 
         PBC_LLMResult res = PBC_CallLLM(sysPrompt, userPrompt);
 
         if (!res.success || res.text.empty())
         {
-            PBC_Log(PBC_LogLevel::PBC_WARNING, "ProcessEvent: LLM failed/empty for character={}", snap.charName);
+            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "ProcessEvent: LLM failed/empty for character={} success={} textEmpty={}",
+                     snap.charName, res.success, res.text.empty());
             continue;
         }
 

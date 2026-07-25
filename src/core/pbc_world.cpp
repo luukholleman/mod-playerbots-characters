@@ -549,8 +549,8 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                         bot->Say(action.text, LANG_UNIVERSAL);
                     }
 
-                    PBC_Log(PBC_LogLevel::PBC_DEBUG, "OnUpdate: sent chat for character={} type={}",
-                                 bot->GetName(), ct);
+                    PBC_Log(PBC_LogLevel::PBC_DEFAULT, "OnUpdate: sent chat for character={} type={} channel={}",
+                                 bot->GetName(), ct, action.channelName);
                 }
             }
 
