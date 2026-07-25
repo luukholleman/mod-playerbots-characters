@@ -169,8 +169,22 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
             int triggered = 0;
             int skippedNotBot = 0;
             int skippedInCombat = 0;
+            int skippedNoRealPlayer = 0;
             auto const& players = ObjectAccessor::GetPlayers();
-            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: scanning {} players", players.size());
+
+            // Find zones that have at least one real (non-bot) player
+            std::unordered_set<uint32_t> zonesWithRealPlayers;
+            for (auto const& [guid, player] : players)
+            {
+                if (!player || !player->IsInWorld()) continue;
+                WorldSession* sess = player->GetSession();
+                if (PBC_PTR_VALID(sess) && !sess->IsBot())
+                    zonesWithRealPlayers.insert(player->GetZoneId());
+            }
+
+            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: scanning {} players, {} zones with real players",
+                     players.size(), zonesWithRealPlayers.size());
+
             for (auto const& [guid, player] : players)
             {
                 if (!player || !player->IsInWorld()) continue;
@@ -179,6 +193,8 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                 if (!PBC_PTR_VALID(sess) || !sess->IsBot()) { ++skippedNotBot; continue; }
 
                 if (player->IsInCombat()) { ++skippedInCombat; continue; }
+
+                if (!zonesWithRealPlayers.count(player->GetZoneId())) { ++skippedNoRealPlayer; continue; }
 
                 ++botCount;
 
@@ -190,9 +206,9 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                     ++triggered;
                 }
             }
-            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: interval={}s chance={}% players={} botsEligible={} triggered={} skipped:[notBot={} combat={}]",
+            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: interval={}s chance={}% players={} botsEligible={} triggered={} skipped:[notBot={} combat={} noRealPlayer={}]",
                      g_PBC_AmbientChatIntervalSeconds, g_PBC_AmbientChatChance, (int)players.size(), botCount, triggered,
-                     skippedNotBot, skippedInCombat);
+                     skippedNotBot, skippedInCombat, skippedNoRealPlayer);
         }
     }
 
