@@ -193,6 +193,16 @@ PBC.ReplyChanceChannelMention = 60
 #     Default:     25
 PBC.ChannelMessageMaxCandidates = 25
 
+# PBC.ChannelRequiresCharacterCard
+#     Description: Only let characters that have a card file react to channel chat. Channels
+#                  are public spaces full of random bots nobody wrote a card for — with this
+#                  disabled, most channel replies come from the generic default persona rather
+#                  than your actual characters. Set to 0 if you want any bot to chime in.
+#                  Note: with this enabled and no cards written for bots in your zone, nothing
+#                  will reply in the channel — that is expected, not a malfunction.
+#     Default:     1
+PBC.ChannelRequiresCharacterCard = 1
+
 # PBC.ReplyChanceItem
 #     Description: The percent chance (0-100) that a character would react when the party
 #                  finds a rare (blue) or higher quality weapon or armor item.

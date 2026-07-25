@@ -68,6 +68,7 @@ std::vector<std::string> g_PBC_ChannelNamePrefixes = { "General" };
 uint32_t                 g_PBC_ReplyChanceChannelMessage = 5;
 uint32_t                 g_PBC_ReplyChanceChannelMention = 60;
 uint32_t                 g_PBC_ChannelMessageMaxCandidates = 25;
+bool                     g_PBC_ChannelRequiresCharacterCard = true;
 
 uint32_t g_PBC_LocationChangeDebounceCycles = 5;
 uint32_t g_PBC_CombatEndDebounceCycles      = 5;
@@ -481,6 +482,7 @@ void PBC_LoadConfig(bool /*isStartup*/)
     g_PBC_ReplyChanceChannelMessage = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceChannelMessage", 5);
     g_PBC_ReplyChanceChannelMention = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceChannelMention", 60);
     g_PBC_ChannelMessageMaxCandidates = sConfigMgr->GetOption<uint32_t>("PBC.ChannelMessageMaxCandidates", 25);
+    g_PBC_ChannelRequiresCharacterCard = sConfigMgr->GetOption<bool>("PBC.ChannelRequiresCharacterCard", true);
 
     g_PBC_LocationChangeDebounceCycles = sConfigMgr->GetOption<uint32_t>("PBC.LocationChangeDebounceCycles", 5);
     g_PBC_CombatEndDebounceCycles      = sConfigMgr->GetOption<uint32_t>("PBC.CombatEndDebounceCycles", 5);
@@ -572,9 +574,9 @@ void PBC_LoadConfig(bool /*isStartup*/)
         g_PBC_ReplyChanceHardCombat, g_PBC_ReplyChanceQuestCompleted, g_PBC_ReplyChanceQuestTaken);
 
     PBC_Log(PBC_LogLevel::PBC_DEFAULT,
-        "Config: ReactToChannelChat={} ChannelNamePrefixes={} "
+        "Config: ReactToChannelChat={} ChannelNamePrefixes={} RequiresCharacterCard={} "
         "Chances: ChannelMessage={}% ChannelMention={}% ChannelMessageMaxCandidates={}",
-        g_PBC_ReactToChannelChat, channelPrefixesStr,
+        g_PBC_ReactToChannelChat, channelPrefixesStr, g_PBC_ChannelRequiresCharacterCard,
         g_PBC_ReplyChanceChannelMessage, g_PBC_ReplyChanceChannelMention,
         g_PBC_ChannelMessageMaxCandidates);
 

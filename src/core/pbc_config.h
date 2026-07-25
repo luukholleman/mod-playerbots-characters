@@ -78,6 +78,7 @@ extern std::vector<std::string> g_PBC_ChannelNamePrefixes;
 extern uint32_t                 g_PBC_ReplyChanceChannelMessage;
 extern uint32_t                 g_PBC_ReplyChanceChannelMention;
 extern uint32_t                 g_PBC_ChannelMessageMaxCandidates;
+extern bool                     g_PBC_ChannelRequiresCharacterCard;
 
 extern uint32_t g_PBC_LocationChangeDebounceCycles;
 extern uint32_t g_PBC_CombatEndDebounceCycles;

@@ -1,11 +1,13 @@
 #include "pbc_group_helpers.h"
 #include "pbc_utils.h"
+#include "pbc_config.h"
 #include "Player.h"
 #include "Group.h"
 #include "WorldSession.h"
 #include "ObjectAccessor.h"
 #include "GridNotifiers.h"
 #include "CellImpl.h"
+#include "World.h"
 
 #include <algorithm>
 #include <random>
@@ -178,13 +180,30 @@ std::vector<Player*> PBC_FindChannelBots(Player* sender, size_t maxCandidates)
 
     uint32 zoneId = sender->GetZoneId();
 
+    // Alliance and Horde have separate ChannelMgr instances (and therefore
+    // separate Channel objects for the same channel name) unless two-side
+    // channel interaction is enabled.  A bot of the opposite faction would
+    // reply into its own faction's channel, which the sender can never see —
+    // so restrict candidates to the sender's faction in that case.
+    bool crossFactionChannels = sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_CHANNEL);
+    TeamId senderTeam = sender->GetTeamId();
+
     for (auto const& [guid, player] : ObjectAccessor::GetPlayers())
     {
         if (!PBC_PTR_VALID(player) || player == sender) continue;
         if (!player->IsInWorld()) continue;
         if (player->GetZoneId() != zoneId) continue;
+        if (!crossFactionChannels && player->GetTeamId() != senderTeam) continue;
         WorldSession* sess = player->GetSession();
         if (!PBC_PTR_VALID(sess) || !sess->IsBot()) continue;
+
+        // Channels are public spaces full of random bots that were never given
+        // a card.  Without this, replies come from generic default personas
+        // rather than the characters the user actually wrote.
+        if (g_PBC_ChannelRequiresCharacterCard &&
+            !g_PBC_CharacterCards.count(player->GetName()))
+            continue;
+
         bots.push_back(player);
     }
 

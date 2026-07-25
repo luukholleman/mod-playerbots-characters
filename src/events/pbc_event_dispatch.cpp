@@ -583,7 +583,11 @@ void PBC_DispatchChannelMessageEvent(Player* sender, Channel* channel, const std
     ev.source.message     = msg;
     ev.chatType           = CHAT_MSG_CHANNEL;
     ev.channelName        = channelName;
-    ev.canCreateEvents    = true;
+    // Secondary events pull in the responder's *groupmates*, who were never
+    // part of the channel audience.  They also travel through
+    // PBC_PendingEventRequest, which carries no channelName — so their replies
+    // would fall back to a local say.  Channel events never spawn secondaries.
+    ev.canCreateEvents    = false;
 
     // Record the real player who triggered this event (for regen logging).
     {
@@ -593,6 +597,14 @@ void PBC_DispatchChannelMessageEvent(Player* sender, Channel* channel, const std
     }
 
     PBC_RollBotsForMessage(ev, bots, msg, /*useChannelChance=*/true);
+
+    // Everyone who lost the roll would otherwise have the message written into
+    // their personal history, growing it toward MaxHistoryCtx and eventually
+    // triggering a condensation LLM call — per bot, per channel line.  A party
+    // is ~4 characters; a channel candidate pool is up to
+    // ChannelMessageMaxCandidates, on a far busier channel.  Only the
+    // characters that actually speak keep any history of channel chatter.
+    ev.silentCharGuids.clear();
 
     PBC_Log(PBC_LogLevel::PBC_DEBUG, "Channel chat from {} in '{}' -> {}/{} bots will respond",
              senderName, channelName, ev.respondingChars.size(), bots.size());
