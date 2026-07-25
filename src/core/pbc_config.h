@@ -24,6 +24,15 @@ extern bool     g_PBC_DebugShowFullRequest;
 extern bool     g_PBC_DisplayNarratorEvents;
 extern bool     g_PBC_CardAdditionsMigrationNeeded;
 
+// Set for the duration of a bot's own Channel::Say() call in the OnUpdate
+// action-drain loop (main thread only — no locking needed). Channel::Say()
+// now fires OnPlayerCanUseChat for every caller, including our own replies,
+// so the channel chat hook checks this to avoid re-dispatching its own
+// output as if it were a fresh message from some other bot (e.g. one of
+// mod-playerbots' own General-channel loot/quest broadcasts, which we DO
+// want to react to).
+extern bool     g_PBC_SendingOwnChannelReply;
+
 // ---------------------------------------------------------------------------
 // LLM API connection registry
 //

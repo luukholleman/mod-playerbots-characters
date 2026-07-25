@@ -445,7 +445,14 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                         if (ChannelMgr* cMgr = ChannelMgr::forTeam(bot->GetTeamId()))
                         {
                             if (Channel* channel = cMgr->GetChannel(action.channelName, bot, false))
+                            {
+                                // Channel::Say() now fires OnPlayerCanUseChat for every
+                                // caller. Guard against re-dispatching our own output as
+                                // if it were a new message (see g_PBC_SendingOwnChannelReply).
+                                g_PBC_SendingOwnChannelReply = true;
                                 channel->Say(bot->GetGUID(), action.text, LANG_UNIVERSAL);
+                                g_PBC_SendingOwnChannelReply = false;
+                            }
                         }
                     }
                     else

@@ -143,8 +143,16 @@ bool PBC_PlayerEvents::OnPlayerCanUseChat(Player* player, uint32 /*type*/, uint3
     if (!PBC_PTR_VALID(player) || !channel) return true;
     if (IsBlacklisted(lang, msg)) return true;
 
+    // Never re-dispatch our own reply as if it were a new message (would
+    // bypass the secondary-event decay entirely — see g_PBC_SendingOwnChannelReply).
+    if (g_PBC_SendingOwnChannelReply) return true;
+
     bool senderIsBot = player->GetSession() && player->GetSession()->IsBot();
-    if (senderIsBot) return true;
+    // Other bots' channel messages (e.g. mod-playerbots' own General-channel
+    // loot/quest broadcasts) are dispatched like a real player's, gated by
+    // PBC.ReplyToBotMessages, with the same decaying-chance safety net used
+    // for bot-to-bot secondary events.
+    if (senderIsBot && !g_PBC_ReplyToBotMessages) return true;
 
     if (!IsAllowedChannel(channel->GetName())) return true;
 

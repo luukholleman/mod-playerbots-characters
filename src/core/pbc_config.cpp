@@ -30,6 +30,7 @@ bool     g_PBC_DebugEnabled        = false;
 bool     g_PBC_DebugShowFullRequest = false;
 bool     g_PBC_DisplayNarratorEvents = true;
 bool     g_PBC_CardAdditionsMigrationNeeded = false;
+bool     g_PBC_SendingOwnChannelReply = false;
 
 // Connection registry
 std::unordered_map<std::string, PBC_APIConfig> g_PBC_Connections;
