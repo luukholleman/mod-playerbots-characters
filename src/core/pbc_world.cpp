@@ -167,20 +167,16 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
 
             int botCount = 0;
             int triggered = 0;
-            int skippedNoPlayer = 0;
-            int skippedNotInWorld = 0;
             int skippedNotBot = 0;
             int skippedInCombat = 0;
-            WorldSessionMgr::SessionMap const& sessions = sWorldSessionMgr->GetAllSessions();
-            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: scanning {} sessions", sessions.size());
-            for (auto const& [id, session] : sessions)
+            auto const& players = ObjectAccessor::GetPlayers();
+            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: scanning {} players", players.size());
+            for (auto const& [guid, player] : players)
             {
-                Player* player = session->GetPlayer();
-                if (!player || !player->IsInWorld()) { ++skippedNoPlayer; continue; }
+                if (!player || !player->IsInWorld()) continue;
 
                 WorldSession* sess = player->GetSession();
-                if (!PBC_PTR_VALID(sess)) { ++skippedNoPlayer; continue; }
-                if (!sess->IsBot()) { ++skippedNotBot; continue; }
+                if (!PBC_PTR_VALID(sess) || !sess->IsBot()) { ++skippedNotBot; continue; }
 
                 if (player->IsInCombat()) { ++skippedInCombat; continue; }
 
@@ -189,15 +185,14 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                 std::uniform_real_distribution<float> rollDist(0.0f, 100.0f);
                 if (rollDist(PBC_GetRNG()) < g_PBC_AmbientChatChance)
                 {
-                    PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: triggering bot character={} (chatChance={})",
-                             player->GetName(), g_PBC_AmbientChatChance);
+                    PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: triggering bot character={}", player->GetName());
                     PBC_DispatchTriggerEvent(player);
                     ++triggered;
                 }
             }
-            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: interval={}s chance={}% sessions={} botsEligible={} triggered={} skipped:[noPlayer={} notBot={} combat={}]",
-                     g_PBC_AmbientChatIntervalSeconds, g_PBC_AmbientChatChance, (int)sessions.size(), botCount, triggered,
-                     skippedNoPlayer, skippedNotBot, skippedInCombat);
+            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: interval={}s chance={}% players={} botsEligible={} triggered={} skipped:[notBot={} combat={}]",
+                     g_PBC_AmbientChatIntervalSeconds, g_PBC_AmbientChatChance, (int)players.size(), botCount, triggered,
+                     skippedNotBot, skippedInCombat);
         }
     }
 
