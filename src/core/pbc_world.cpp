@@ -18,6 +18,8 @@
 #include "WorldSessionMgr.h"
 #include "SharedDefines.h"
 #include "GameTime.h"
+#include "Channel.h"
+#include "ChannelMgr.h"
 
 PBC_WorldScript::PBC_WorldScript() : WorldScript("PBC_WorldScript") {}
 
@@ -419,6 +421,14 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                     else if (ct == CHAT_MSG_YELL)
                     {
                         bot->Yell(action.text, LANG_UNIVERSAL);
+                    }
+                    else if (ct == CHAT_MSG_CHANNEL && !action.channelName.empty())
+                    {
+                        if (ChannelMgr* cMgr = ChannelMgr::forTeam(bot->GetTeamId()))
+                        {
+                            if (Channel* channel = cMgr->GetChannel(action.channelName, bot, false))
+                                channel->Say(bot->GetGUID(), action.text, LANG_UNIVERSAL);
+                        }
                     }
                     else
                     {

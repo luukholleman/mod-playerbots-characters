@@ -63,6 +63,12 @@ uint32_t g_PBC_ReplyChanceQuestCompleted = 20;
 uint32_t g_PBC_ReplyChanceQuestTaken     = 10;
 uint32_t g_PBC_ReplyChanceLocationChanged = 15;
 
+bool                     g_PBC_ReactToChannelChat = true;
+std::vector<std::string> g_PBC_ChannelNamePrefixes = { "General" };
+uint32_t                 g_PBC_ReplyChanceChannelMessage = 5;
+uint32_t                 g_PBC_ReplyChanceChannelMention = 60;
+uint32_t                 g_PBC_ChannelMessageMaxCandidates = 25;
+
 uint32_t g_PBC_LocationChangeDebounceCycles = 5;
 uint32_t g_PBC_CombatEndDebounceCycles      = 5;
 
@@ -469,6 +475,13 @@ void PBC_LoadConfig(bool /*isStartup*/)
     g_PBC_ReplyChanceQuestTaken     = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceQuestTaken", 10);
     g_PBC_ReplyChanceLocationChanged = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceLocationChanged", 15);
 
+    g_PBC_ReactToChannelChat = sConfigMgr->GetOption<bool>("PBC.ReactToChannelChat", true);
+    std::string channelPrefixesStr = sConfigMgr->GetOption<std::string>("PBC.ChannelNamePrefixes", "General");
+    g_PBC_ChannelNamePrefixes = SplitByComma(channelPrefixesStr);
+    g_PBC_ReplyChanceChannelMessage = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceChannelMessage", 5);
+    g_PBC_ReplyChanceChannelMention = sConfigMgr->GetOption<uint32_t>("PBC.ReplyChanceChannelMention", 60);
+    g_PBC_ChannelMessageMaxCandidates = sConfigMgr->GetOption<uint32_t>("PBC.ChannelMessageMaxCandidates", 25);
+
     g_PBC_LocationChangeDebounceCycles = sConfigMgr->GetOption<uint32_t>("PBC.LocationChangeDebounceCycles", 5);
     g_PBC_CombatEndDebounceCycles      = sConfigMgr->GetOption<uint32_t>("PBC.CombatEndDebounceCycles", 5);
 
@@ -557,6 +570,13 @@ void PBC_LoadConfig(bool /*isStartup*/)
         g_PBC_ReplyChanceItem,
         g_PBC_ReplyChanceDuel, g_PBC_ReplyChanceLevelUp,
         g_PBC_ReplyChanceHardCombat, g_PBC_ReplyChanceQuestCompleted, g_PBC_ReplyChanceQuestTaken);
+
+    PBC_Log(PBC_LogLevel::PBC_DEFAULT,
+        "Config: ReactToChannelChat={} ChannelNamePrefixes={} "
+        "Chances: ChannelMessage={}% ChannelMention={}% ChannelMessageMaxCandidates={}",
+        g_PBC_ReactToChannelChat, channelPrefixesStr,
+        g_PBC_ReplyChanceChannelMessage, g_PBC_ReplyChanceChannelMention,
+        g_PBC_ChannelMessageMaxCandidates);
 
     PBC_Log(PBC_LogLevel::PBC_DEFAULT,
         "HTTP Server: Port={} Bind='{}' Timeout={}s BaseUrl='{}' PrivateKey={} FrontendPath='{}'",

@@ -7,6 +7,7 @@
 
 class Player;
 class Group;
+class Channel;
 class Item;
 class Creature;
 class Quest;
@@ -27,6 +28,8 @@ public:
                             std::string& msg) override;
     bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 /*lang*/,
                             std::string& msg, Group* group) override;
+    bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 /*lang*/,
+                            std::string& msg, Channel* channel) override;
 
     // Login/logout — used for WS "online"/"offline" events
     void OnPlayerLogin(Player* player) override;

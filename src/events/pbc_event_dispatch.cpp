@@ -12,6 +12,7 @@
 #include "Chat.h"
 #include "WorldSession.h"
 #include "SharedDefines.h"
+#include "Channel.h"
 
 #include <fmt/core.h>
 #include <algorithm>
@@ -209,8 +210,12 @@ void PBC_RollBotsWithPenalty(PBC_EventItem& ev,
 // ---------------------------------------------------------------------------
 void PBC_RollBotsForMessage(PBC_EventItem& ev,
                              const std::vector<Player*>& bots,
-                             const std::string& message)
+                             const std::string& message,
+                             bool useChannelChance)
 {
+    uint32_t mentionChance = useChannelChance ? g_PBC_ReplyChanceChannelMention : g_PBC_ReplyChanceMention;
+    uint32_t messageChance = useChannelChance ? g_PBC_ReplyChanceChannelMessage : g_PBC_ReplyChanceMessage;
+
     bool anyMention = false;
     for (Player* bot : bots)
         if (PBC_MentionsCharacter(message, bot->GetName())) { anyMention = true; break; }
@@ -236,7 +241,7 @@ void PBC_RollBotsForMessage(PBC_EventItem& ev,
         for (auto& [pos, bot] : positions)
         {
             mentionedGuids.insert(bot->GetGUID().GetCounter());
-            uint32_t effectiveChance = PBC_GetEffectiveChance(bot->GetGUID().GetCounter(), g_PBC_ReplyChanceMention);
+            uint32_t effectiveChance = PBC_GetEffectiveChance(bot->GetGUID().GetCounter(), mentionChance);
             bool rolled = PBC_RollChance(effectiveChance);
             PBC_Log(PBC_LogLevel::PBC_DEBUG, "Roll mention character={} chance={}% -> {}",
                      bot->GetName(), effectiveChance, rolled ? "RESPOND" : "silent");
@@ -247,8 +252,8 @@ void PBC_RollBotsForMessage(PBC_EventItem& ev,
         }
 
         uint32_t mentionPenalty = g_PBC_RollPenaltyOnAnswer * mentionedGuids.size();
-        uint32_t baseChance = g_PBC_ReplyChanceMention > mentionPenalty
-            ? g_PBC_ReplyChanceMention - mentionPenalty : 0;
+        uint32_t baseChance = mentionChance > mentionPenalty
+            ? mentionChance - mentionPenalty : 0;
 
         std::vector<Player*> nonMentionedBots;
         for (Player* bot : bots)
@@ -262,7 +267,7 @@ void PBC_RollBotsForMessage(PBC_EventItem& ev,
     {
         std::vector<Player*> shuffledBots = bots;
         std::shuffle(shuffledBots.begin(), shuffledBots.end(), PBC_GetRNG());
-        PBC_RollBotsWithPenalty(ev, shuffledBots, g_PBC_ReplyChanceMessage, "message");
+        PBC_RollBotsWithPenalty(ev, shuffledBots, messageChance, "message");
     }
 }
 
@@ -544,6 +549,53 @@ void PBC_DispatchPartyMessageEvent(Player* sender, const std::string& msg,
 
     PBC_Log(PBC_LogLevel::PBC_DEBUG, "Chat from {} type={} -> {}/{} bots will respond",
              senderName, chatType, ev.respondingChars.size(), bots.size());
+
+    PBC_PushEvent(std::move(ev));
+}
+
+// ---------------------------------------------------------------------------
+// PBC_DispatchChannelMessageEvent
+// ---------------------------------------------------------------------------
+void PBC_DispatchChannelMessageEvent(Player* sender, Channel* channel, const std::string& msg)
+{
+    if (!PBC_PTR_VALID(sender) || !channel) return;
+
+    std::string senderName = sender->GetName();
+    std::string channelName = channel->GetName();
+    std::string eventLine   = PBC_Localize("{0} says: {1}", senderName, msg);
+
+    std::vector<Player*> bots = PBC_FindChannelBots(sender, g_PBC_ChannelMessageMaxCandidates);
+    if (bots.empty())
+    {
+        PBC_Log(PBC_LogLevel::PBC_DEBUG, "Channel message event from {} in '{}' discarded — no bots found",
+                 senderName, channelName);
+        return;
+    }
+
+    PBC_Log(PBC_LogLevel::PBC_DEBUG, "Channel message event from {} in '{}' ({} bots): \"{}\"",
+             senderName, channelName, bots.size(), msg);
+
+    PBC_EventItem ev;
+    ev.type               = PBC_EventType::Normal;
+    ev.eventLine          = eventLine;
+    ev.source.senderGuid  = sender->GetGUID().GetCounter();
+    ev.source.senderName  = senderName;
+    ev.source.message     = msg;
+    ev.chatType           = CHAT_MSG_CHANNEL;
+    ev.channelName        = channelName;
+    ev.canCreateEvents    = true;
+
+    // Record the real player who triggered this event (for regen logging).
+    {
+        WorldSession* senderSess = sender->GetSession();
+        if (PBC_PTR_VALID(senderSess) && !senderSess->IsBot())
+            ev.regenRequesterGuid = sender->GetGUID().GetCounter();
+    }
+
+    PBC_RollBotsForMessage(ev, bots, msg, /*useChannelChance=*/true);
+
+    PBC_Log(PBC_LogLevel::PBC_DEBUG, "Channel chat from {} in '{}' -> {}/{} bots will respond",
+             senderName, channelName, ev.respondingChars.size(), bots.size());
 
     PBC_PushEvent(std::move(ev));
 }

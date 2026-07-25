@@ -116,6 +116,7 @@ void PushReplySegments(const PBC_CharacterSnapshot& snap,
             action.charGuid    = snap.charObjGuid;
             action.targetGuid  = snap.whisperTargetGuid;
             action.chatType    = ev.chatType;
+            action.channelName = ev.channelName;
             action.text        = seg.text;
 
             std::lock_guard<std::mutex> lock(g_PBC_PendingActionsMutex);
@@ -597,6 +598,7 @@ void ProcessNormal(PBC_EventItem& ev,
                 action.charGuid    = snap.charObjGuid;
                 action.targetGuid  = snap.whisperTargetGuid;
                 action.chatType    = ev.chatType;
+                action.channelName = ev.channelName;
                 action.text        = res.text;
 
                 std::lock_guard<std::mutex> lock(g_PBC_PendingActionsMutex);

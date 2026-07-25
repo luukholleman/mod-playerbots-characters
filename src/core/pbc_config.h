@@ -72,6 +72,13 @@ extern uint32_t g_PBC_ReplyChanceQuestCompleted;
 extern uint32_t g_PBC_ReplyChanceQuestTaken;
 extern uint32_t g_PBC_ReplyChanceLocationChanged;
 
+// Channel (e.g. General) chat
+extern bool                     g_PBC_ReactToChannelChat;
+extern std::vector<std::string> g_PBC_ChannelNamePrefixes;
+extern uint32_t                 g_PBC_ReplyChanceChannelMessage;
+extern uint32_t                 g_PBC_ReplyChanceChannelMention;
+extern uint32_t                 g_PBC_ChannelMessageMaxCandidates;
+
 extern uint32_t g_PBC_LocationChangeDebounceCycles;
 extern uint32_t g_PBC_CombatEndDebounceCycles;
 
@@ -257,6 +264,7 @@ struct PBC_EventItem
     std::string eventLine;          // Present-tense for [CURRENT EVENT]
     PBC_EventSource source;        // Raw event data — single source of truth
     uint32_t    chatType = 0;       // Chat channel for bot replies
+    std::string channelName;        // Channel name for CHAT_MSG_CHANNEL replies
     std::vector<PBC_CharacterSnapshot> respondingChars;  // Rolled to respond
     std::vector<uint64_t> silentCharGuids;               // Receive source-derived histLine only
     std::vector<uint64_t> playerCharGuids;               // Real players receiving history
@@ -322,6 +330,7 @@ struct PBC_PendingAction
     ObjectGuid  charGuid;
     ObjectGuid  targetGuid;     // Non-empty = whisper target
     uint32_t    chatType = 0;
+    std::string channelName;    // Non-empty = channel to reply into (CHAT_MSG_CHANNEL)
     std::string text;           // Empty = no-op
     bool        isNarratorMessage = false;  // Send as narrator system message
 };

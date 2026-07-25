@@ -156,6 +156,43 @@ PBC.ReplyChanceMessage = 100
 #     Default:     45
 PBC.RollPenaltyOnAnswer = 45
 
+# --------------------------------------------
+# CHANNEL CHAT (e.g. General)
+# --------------------------------------------
+
+# PBC.ReactToChannelChat
+#     Description: Whether characters may react to channel chat (e.g. /1 General) at all.
+#     Default:     1
+PBC.ReactToChannelChat = 1
+
+# PBC.ChannelNamePrefixes
+#     Description: Comma-separated list of channel-name prefixes characters may react to.
+#                  A channel is eligible if its name starts with one of these prefixes
+#                  (e.g. "General" matches "General - Elwynn Forest"). Leave channels like
+#                  Trade/LookingForGroup out unless you want characters reacting to item-link
+#                  spam there too.
+#     Default:     General
+PBC.ChannelNamePrefixes = General
+
+# PBC.ReplyChanceChannelMessage
+#     Description: Like ReplyChanceMessage, but for channel chat. Kept low by default since a
+#                  zone-wide General channel can have far more eligible characters listening
+#                  than a party ever would.
+#     Default:     5
+PBC.ReplyChanceChannelMessage = 5
+
+# PBC.ReplyChanceChannelMention
+#     Description: Like ReplyChanceMention, but for channel chat.
+#     Default:     60
+PBC.ReplyChanceChannelMention = 60
+
+# PBC.ChannelMessageMaxCandidates
+#     Description: Hard cap on how many characters sharing the sender's zone are even
+#                  considered (rolled) for a given channel message, regardless of the
+#                  chances above. Bounds worst-case cost on densely populated channels.
+#     Default:     25
+PBC.ChannelMessageMaxCandidates = 25
+
 # PBC.ReplyChanceItem
 #     Description: The percent chance (0-100) that a character would react when the party
 #                  finds a rare (blue) or higher quality weapon or armor item.

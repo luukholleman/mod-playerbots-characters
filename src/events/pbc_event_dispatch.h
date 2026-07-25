@@ -6,6 +6,7 @@
 #include <vector>
 
 class Player;
+class Channel;
 struct PBC_EventItem;
 
 // ---------------------------------------------------------------------------
@@ -65,10 +66,15 @@ bool PBC_RollGroupBotsIntoEvent(PBC_EventItem& ev, Player* player,
 // position in the message, rolls mentioned bots at mention chance, then
 // non-mentioned bots at a reduced chance with decaying penalty.
 // Handles shuffling internally.
+// useChannelChance: when true, sources the base/mention chances from
+// g_PBC_ReplyChanceChannelMessage/g_PBC_ReplyChanceChannelMention instead of
+// g_PBC_ReplyChanceMessage/g_PBC_ReplyChanceMention — used for channel (e.g.
+// General) chat, whose audience is zone-wide rather than party-sized.
 // ---------------------------------------------------------------------------
 void PBC_RollBotsForMessage(PBC_EventItem& ev,
                              const std::vector<Player*>& bots,
-                             const std::string& message);
+                             const std::string& message,
+                             bool useChannelChance = false);
 
 // ---------------------------------------------------------------------------
 // Dispatch a whisper event from sender to target bot.
@@ -119,6 +125,15 @@ void PBC_DispatchPartyMessageEvent(Player* sender, const std::string& msg,
                                     const std::string& senderNameOverride = "",
                                     uint32_t chatType = 0,
                                     bool canCreateEvents = true);
+
+// ---------------------------------------------------------------------------
+// Dispatch a channel (e.g. General) chat message event from sender to bots
+// currently sharing sender's zone (see PBC_FindChannelBots).  Rolls chances
+// (mention-aware, using the channel-specific chance knobs), pushes
+// PBC_EventItem with chatType=CHAT_MSG_CHANNEL and channelName set so
+// replies are routed back into the same channel.
+// ---------------------------------------------------------------------------
+void PBC_DispatchChannelMessageEvent(Player* sender, Channel* channel, const std::string& msg);
 
 // ---------------------------------------------------------------------------
 // Adds all real (non-bot) players in the anchor's group (including the anchor

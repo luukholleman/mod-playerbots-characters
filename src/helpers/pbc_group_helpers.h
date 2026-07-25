@@ -49,6 +49,14 @@ std::vector<Player*> PBC_FindSubGroupBots(Player* player);
 // Used for say/yell chat events where proximity matters rather than group.
 std::vector<Player*> PBC_FindNearbyBots(Player* source, float range = 60.0f);
 
+// Find bot players eligible to answer a channel (e.g. General) chat message.
+// Channel membership itself isn't queryable from outside the core Channel
+// class, so this uses the same-zone-as-sender proxy (the scope classic
+// WotLK's zone-based General channel already uses), excludes 'sender', and
+// caps the result at maxCandidates (after shuffling) to bound worst-case
+// fan-out on populated channels.
+std::vector<Player*> PBC_FindChannelBots(Player* sender, size_t maxCandidates);
+
 // Returns true if bot is in a group that contains at least one real (non-bot) player.
 bool PBC_BotIsGroupedWithRealPlayer(Player* bot);
 

@@ -7,6 +7,9 @@
 #include "GridNotifiers.h"
 #include "CellImpl.h"
 
+#include <algorithm>
+#include <random>
+
 // ---------------------------------------------------------------------------
 // PBC_FindGroupBots
 // ---------------------------------------------------------------------------
@@ -161,6 +164,36 @@ std::vector<Player*> PBC_FindNearbyBots(Player* source, float range)
     };
     Acore::PlayerDistWorker<decltype(doWork)> worker(source, range, doWork);
     Cell::VisitObjects(source, worker, range);
+    return bots;
+}
+
+// ---------------------------------------------------------------------------
+// PBC_FindChannelBots
+// ---------------------------------------------------------------------------
+
+std::vector<Player*> PBC_FindChannelBots(Player* sender, size_t maxCandidates)
+{
+    std::vector<Player*> bots;
+    if (!PBC_PTR_VALID(sender)) return bots;
+
+    uint32 zoneId = sender->GetZoneId();
+
+    for (auto const& [guid, player] : ObjectAccessor::GetPlayers())
+    {
+        if (!PBC_PTR_VALID(player) || player == sender) continue;
+        if (!player->IsInWorld()) continue;
+        if (player->GetZoneId() != zoneId) continue;
+        WorldSession* sess = player->GetSession();
+        if (!PBC_PTR_VALID(sess) || !sess->IsBot()) continue;
+        bots.push_back(player);
+    }
+
+    if (bots.size() > maxCandidates)
+    {
+        std::shuffle(bots.begin(), bots.end(), PBC_GetRNG());
+        bots.resize(maxCandidates);
+    }
+
     return bots;
 }
 

@@ -17,6 +17,7 @@
 #include "Creature.h"
 #include "Item.h"
 #include "Group.h"
+#include "Channel.h"
 #include "ObjectAccessor.h"
 #include "SharedDefines.h"
 #include "QuestDef.h"
@@ -40,6 +41,14 @@ static bool IsBlacklisted(uint32 lang, const std::string& msg)
 
     for (const auto& prefix : g_PBC_Blacklist)
         if (!prefix.empty() && msg.rfind(prefix, 0) == 0)
+            return true;
+    return false;
+}
+
+static bool IsAllowedChannel(const std::string& channelName)
+{
+    for (const auto& prefix : g_PBC_ChannelNamePrefixes)
+        if (!prefix.empty() && channelName.rfind(prefix, 0) == 0)
             return true;
     return false;
 }
@@ -93,6 +102,7 @@ PBC_PlayerEvents::PBC_PlayerEvents() : PlayerScript("PBC_PlayerEvents",
     PLAYERHOOK_CAN_PLAYER_USE_CHAT,
     PLAYERHOOK_CAN_PLAYER_USE_PRIVATE_CHAT,
     PLAYERHOOK_CAN_PLAYER_USE_GROUP_CHAT,
+    PLAYERHOOK_CAN_PLAYER_USE_CHANNEL_CHAT,
     PLAYERHOOK_ON_LOGIN,
     PLAYERHOOK_ON_LOGOUT,
     PLAYERHOOK_ON_LOOT_ITEM,
@@ -123,6 +133,23 @@ bool PBC_PlayerEvents::OnPlayerCanUseChat(Player* player, uint32 type, uint32 la
                                           std::string& msg, Group* /*group*/)
 {
     HandleChatMessage(player, type, lang, msg);
+    return true;
+}
+
+bool PBC_PlayerEvents::OnPlayerCanUseChat(Player* player, uint32 /*type*/, uint32 lang,
+                                          std::string& msg, Channel* channel)
+{
+    if (!g_PBC_Enable || !g_PBC_ReactToChannelChat) return true;
+    if (!PBC_PTR_VALID(player) || !channel) return true;
+    if (IsBlacklisted(lang, msg)) return true;
+
+    bool senderIsBot = player->GetSession() && player->GetSession()->IsBot();
+    if (senderIsBot) return true;
+
+    if (!IsAllowedChannel(channel->GetName())) return true;
+
+    const std::string cleanMsg = PBC_SanitizeChatMessage(msg);
+    PBC_DispatchChannelMessageEvent(player, channel, cleanMsg);
     return true;
 }
 
