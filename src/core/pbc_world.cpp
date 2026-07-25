@@ -472,8 +472,14 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                     {
                         if (ChannelMgr* cMgr = ChannelMgr::forTeam(bot->GetTeamId()))
                         {
-                            if (Channel* channel = cMgr->GetChannel(action.channelName, bot, false))
+                            Channel* channel = cMgr->GetJoinChannel(action.channelName, 0);
+                            if (channel)
                             {
+                                // Ensure the bot is a member before speaking — bots
+                                // don't auto-join zone channels like real clients do.
+                                if (!channel->IsOn(bot->GetGUID()))
+                                    channel->JoinChannel(bot, "");
+
                                 // Channel::Say() now fires OnPlayerCanUseChat for every
                                 // caller. Guard against re-dispatching our own output as
                                 // if it were a new message (see g_PBC_SendingOwnChannelReply).
