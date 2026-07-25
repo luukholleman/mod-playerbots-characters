@@ -79,7 +79,7 @@ uint32_t g_PBC_LocationChangeDebounceCycles = 5;
 uint32_t g_PBC_CombatEndDebounceCycles      = 5;
 
 uint32_t g_PBC_AmbientChatIntervalSeconds = 120;
-uint32_t g_PBC_AmbientChatChance          = 10;
+float    g_PBC_AmbientChatChance          = 10.0f;
 
 std::string g_PBC_QuestCompletedSystemPrompt;
 std::string g_PBC_QuestCompletedUserPrompt;
@@ -500,7 +500,7 @@ void PBC_LoadConfig(bool /*isStartup*/)
     g_PBC_CombatEndDebounceCycles      = sConfigMgr->GetOption<uint32_t>("PBC.CombatEndDebounceCycles", 5);
 
     g_PBC_AmbientChatIntervalSeconds = sConfigMgr->GetOption<uint32_t>("PBC.AmbientChatIntervalSeconds", 120);
-    g_PBC_AmbientChatChance          = sConfigMgr->GetOption<uint32_t>("PBC.AmbientChatChance", 10);
+    g_PBC_AmbientChatChance          = sConfigMgr->GetOption<float>("PBC.AmbientChatChance", 10.0f);
 
     std::string blacklistStr = sConfigMgr->GetOption<std::string>("PBC.Blacklist", "");
     g_PBC_Blacklist = SplitByComma(blacklistStr);

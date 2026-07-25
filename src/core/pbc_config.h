@@ -106,7 +106,7 @@ extern uint32_t g_PBC_CombatEndDebounceCycles;
 
 // Ambient chat — bots spontaneously speak even without an incoming event
 extern uint32_t g_PBC_AmbientChatIntervalSeconds;
-extern uint32_t g_PBC_AmbientChatChance;
+extern float    g_PBC_AmbientChatChance;
 
 // Quest LLM prompts
 extern std::string g_PBC_QuestCompletedSystemPrompt;

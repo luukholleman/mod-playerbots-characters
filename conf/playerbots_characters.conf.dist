@@ -310,11 +310,12 @@ PBC.LocationChangeDebounceCycles = 5
 PBC.AmbientChatIntervalSeconds = 120
 
 # PBC.AmbientChatChance
-#     Description: The percent chance (0-100) that each eligible bot will
+#     Description: The percent chance (0.0-100.0) that each eligible bot will
 #                  spontaneously say something when the ambient chat timer
 #                  fires.  Applies independently to every bot each interval.
-#     Default:     10
-PBC.AmbientChatChance = 10
+#                  Supports fractional values (e.g. 0.01 for sub-1% chance).
+#     Default:     10.0
+PBC.AmbientChatChance = 10.0
 
 
 # --------------------------------------------
