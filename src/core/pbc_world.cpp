@@ -512,8 +512,7 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                             Channel* channel = cMgr->GetChannel(action.channelName, bot, false);
 
                             // Zone channels like "General" have zone-specific names
-                            // (e.g. "General - Elwynn Forest").  If the exact name
-                            // wasn't found, scan existing channels for a match.
+                            // (e.g. "General - Elwynn Forest").  Scan for a match.
                             if (!channel)
                             {
                                 std::string prefix = action.channelName + " - ";
@@ -526,10 +525,6 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                                     }
                                 }
                             }
-
-                            // If still not found, create/find a channel by name (fallback)
-                            if (!channel)
-                                channel = cMgr->GetJoinChannel(action.channelName, 0);
 
                             if (channel)
                             {
