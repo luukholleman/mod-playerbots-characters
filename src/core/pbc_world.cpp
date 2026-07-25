@@ -477,8 +477,9 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                             {
                                 // Ensure the bot is a member before speaking — bots
                                 // don't auto-join zone channels like real clients do.
-                                if (!channel->IsOn(bot->GetGUID()))
-                                    channel->JoinChannel(bot, "");
+                                // JoinChannel is a no-op for constant channels (e.g.
+                                // General) if the bot is already a member.
+                                channel->JoinChannel(bot, "");
 
                                 // Channel::Say() now fires OnPlayerCanUseChat for every
                                 // caller. Guard against re-dispatching our own output as
