@@ -472,18 +472,36 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                     {
                         if (ChannelMgr* cMgr = ChannelMgr::forTeam(bot->GetTeamId()))
                         {
-                            Channel* channel = cMgr->GetJoinChannel(action.channelName, 0);
+                            Channel* channel = cMgr->GetChannel(action.channelName, bot, false);
+
+                            // Zone channels like "General" have zone-specific names
+                            // (e.g. "General - Elwynn Forest").  If the exact name
+                            // wasn't found, scan existing channels for a match.
+                            if (!channel)
+                            {
+                                std::string prefix = action.channelName + " - ";
+                                for (auto const& [wName, ch] : cMgr->GetChannels())
+                                {
+                                    if (ch && ch->GetName().rfind(prefix, 0) == 0)
+                                    {
+                                        channel = ch;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // If still not found, create/find a channel by name (fallback)
+                            if (!channel)
+                                channel = cMgr->GetJoinChannel(action.channelName, 0);
+
                             if (channel)
                             {
                                 // Ensure the bot is a member before speaking — bots
                                 // don't auto-join zone channels like real clients do.
-                                // JoinChannel is a no-op for constant channels (e.g.
-                                // General) if the bot is already a member.
                                 channel->JoinChannel(bot, "");
 
-                                // Channel::Say() now fires OnPlayerCanUseChat for every
-                                // caller. Guard against re-dispatching our own output as
-                                // if it were a new message (see g_PBC_SendingOwnChannelReply).
+                                // Channel::Say() fires OnPlayerCanUseChat; guard against
+                                // re-dispatching our own output (g_PBC_SendingOwnChannelReply).
                                 g_PBC_SendingOwnChannelReply = true;
                                 channel->Say(bot->GetGUID(), action.text, LANG_UNIVERSAL);
                                 g_PBC_SendingOwnChannelReply = false;
