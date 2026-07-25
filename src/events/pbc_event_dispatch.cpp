@@ -481,9 +481,9 @@ void PBC_DispatchTriggerEvent(Player* bot)
 {
     if (!PBC_PTR_VALID(bot)) return;
 
-    // Raid chat when in a raid group, party chat for a regular party, say
-    // otherwise — so triggered characters in different raid sub-groups are
-    // still heard by everyone.
+    // Raid chat when in a raid group, party chat for a regular party,
+    // General channel otherwise — so triggered characters in different
+    // raid sub-groups are still heard by everyone.
     uint32_t chatType = PBC_GetGroupChatType(bot);
 
     uint64_t botGuid = bot->GetGUID().GetCounter();
@@ -511,6 +511,11 @@ void PBC_DispatchTriggerEvent(Player* bot)
         auto groupBots = PBC_FindGroupBots(bot);
         for (Player* groupBot : groupBots)
             ev.silentCharGuids.push_back(groupBot->GetGUID().GetCounter());
+    }
+    else
+    {
+        ev.chatType    = CHAT_MSG_CHANNEL;
+        ev.channelName = "General";
     }
 
     AddTrackedPlayersToEvent(ev, bot);
