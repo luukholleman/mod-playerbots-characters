@@ -165,6 +165,8 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
         {
             s_lastAmbientChat = now;
 
+            int botCount = 0;
+            int triggered = 0;
             WorldSessionMgr::SessionMap const& sessions = sWorldSessionMgr->GetAllSessions();
             for (auto const& [id, session] : sessions)
             {
@@ -176,11 +178,18 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
 
                 if (player->IsInCombat()) continue;
 
+                ++botCount;
+
                 if (PBC_RollChance(g_PBC_AmbientChatChance))
                 {
+                    PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: triggering bot character={} (chatChance={})",
+                             player->GetName(), g_PBC_AmbientChatChance);
                     PBC_DispatchTriggerEvent(player);
+                    ++triggered;
                 }
             }
+            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "AmbientChat: interval={}s chance={}% botsEligible={} triggered={}",
+                     g_PBC_AmbientChatIntervalSeconds, g_PBC_AmbientChatChance, botCount, triggered);
         }
     }
 
