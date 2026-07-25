@@ -421,6 +421,10 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
             std::lock_guard<std::mutex> lock(g_PBC_PendingActionsMutex);
             std::swap(local, g_PBC_PendingActions);
         }
+        if (!local.empty())
+        {
+            PBC_Log(PBC_LogLevel::PBC_DEFAULT, "OnUpdate: draining {} pending actions", local.size());
+        }
         while (!local.empty())
         {
             PBC_PendingAction& action = local.front();
@@ -440,9 +444,14 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                     continue;
                 }
 
-                if (bot && bot->IsInWorld())
+                if (!bot || !bot->IsInWorld())
                 {
-                    uint32_t ct = action.chatType;
+                    PBC_Log(PBC_LogLevel::PBC_DEFAULT, "OnUpdate: bot gone for pending action, charGuid={} chatType={}", action.charGuid.ToString(), action.chatType);
+                    local.pop();
+                    continue;
+                }
+
+                uint32_t ct = action.chatType;
 
                     if (ct == CHAT_MSG_WHISPER && !action.targetGuid.IsEmpty())
                     {
@@ -550,8 +559,7 @@ void PBC_WorldScript::OnUpdate(uint32_t diff)
                     }
 
                     PBC_Log(PBC_LogLevel::PBC_DEFAULT, "OnUpdate: sent chat for character={} type={} channel={}",
-                                 bot->GetName(), ct, action.channelName);
-                }
+                             bot->GetName(), ct, action.channelName);
             }
 
             local.pop();
